@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+    nginx:
+        container_name: "${PROJECT_NAME}_nginx"
+        build:
+            context: .
+            dockerfile: Dockerfile-nginx
+        volumes:
+            - ./symfony/:/var/www/symfony/
+        ports:
+            - ${PROJECT_PORT}:80
+        networks:
+            - symfony
+    
+    php:
+        image: wodby/drupal-php:$PHP_TAG
+        container_name: "${PROJECT_NAME}_php"
+        build:
+            context: .
+            dockerfile: Dockerfile-php
+        environment:
+            PHP_FPM_USER: wodby
+            PHP_FPM_GROUP: wodby
+            PHP_MEMORY_LIMIT: 2G
+            PHP_MAX_TIMEOUT: 900
+            APP_ENV: dev
+        volumes:
+            - ./symfony/:/var/www/symfony/
+        networks:
+            - symfony
+        depends_on:
+            - mariadb
+    mariadb:
+         image: wodby/mariadb:$MARIADB_TAG
+         container_name: "${PROJECT_NAME}_mariadb"
+         stop_grace_period: 30s
+         ports:
+            - ${DB_PORT}:3306
+         environment:
+            MYSQL_ROOT_PASSWORD: $DB_ROOT_PASSWORD
+            MYSQL_DATABASE: $DB_NAME
+            MYSQL_USER: $DB_USER
+            MYSQL_PASSWORD: $DB_PASSWORD
+         volumes:
+            - ./mysql:/var/lib/mysql
+         networks:
+            - symfony
+networks:
+    symfony:

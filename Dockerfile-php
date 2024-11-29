@@ -1,0 +1,14 @@
+FROM php:8.1-fpm
+
+RUN apt-get update
+
+RUN apt-get install -y git zlib1g-dev libxml2-dev libzip-dev
+RUN docker-php-ext-install zip intl mysqli pdo pdo_mysql
+    
+RUN curl -s https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer
+COPY symfony/ /var/www/symfony
+WORKDIR /var/www/symfony/
+RUN cd /var/www/symfony/
+RUN sudo chmod -R 777 symfony
+RUN sudo composer create-project symfony/skeleton .
+RUN sudo composer require webapp
